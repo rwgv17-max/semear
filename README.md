@@ -1,9 +1,9 @@
-# Jornada · Palavra & Oração
+# Semear · Palavra & Oração
 
-Site do app **Jornada**: planos de leitura, reflexão, prática e oração personalizados.
+Site do app **Semear**: planos de leitura, reflexão, prática e oração personalizados.
 
 - `index.html`: página de download (app Android e versão para navegador)
-- `Jornada.apk`: app para Android
+- `Semear.apk`: app para Android
 - `app/`: versão web instalável (iPhone e computador)
 
 Versão de teste.
