@@ -256,6 +256,13 @@ textarea.campo { min-height: 150px; resize: vertical; font-family: var(--f-word)
 .toggle .bx { font-size: 13px; font-weight: 700; }
 a.btn { text-decoration: none; }
 .passo.fixo { animation: none; }
+.toque-fx { position: fixed; top: 0; bottom: 0; width: 34%; z-index: 60; pointer-events: none; opacity: 0; }
+.toque-fx.e { left: 0; background: linear-gradient(90deg, color-mix(in srgb, var(--red) 16%, transparent), transparent); }
+.toque-fx.d { right: 0; background: linear-gradient(270deg, color-mix(in srgb, var(--red) 16%, transparent), transparent); }
+.toque-fx.on { animation: toque .38s ease-out; }
+@keyframes toque { 0% { opacity: 0; } 30% { opacity: 1; } 100% { opacity: 0; } }
+.dica-toque { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); background: var(--sunk, rgba(0,0,0,.05)); border-radius: 12px; padding: 10px 12px; margin: -8px 0 0; }
+.dica-toque b { color: var(--ink); font-weight: 600; }
 /* conclusão */
 .fim { text-align: center; display: grid; gap: 18px; justify-items: center; padding-top: 18px; }
 .fim .ok { width: 96px; height: 96px; border-radius: 50%; background: var(--red); color: var(--red-ink); display: grid; place-items: center; animation: pop .55s cubic-bezier(.3,1.6,.5,1); }
@@ -1010,7 +1017,7 @@ function vPerfil() {
       <p style="font-size:13px" class="muted">Semear é um app da Palavra &amp; Oração.</p>
       <p style="font-size:13px" class="muted">Textos bíblicos: Bíblia Sagrada, Nova Versão Internacional®, NVI® Copyright © 1993, 2000 by Biblica, Inc.™ Usado com permissão.</p>
       <p style="font-size:13px" class="muted">Este app ajuda na sua caminhada, mas não substitui sua igreja, aconselhamento pastoral ou acompanhamento profissional. Em crise, ligue 188 (CVV).</p>
-      <p style="font-size:13px" class="muted">Versão de teste 3 · ${remoto ? "progresso salvo na sua conta" : "progresso salvo neste aparelho"}</p></div>
+      <p style="font-size:13px" class="muted">Versão de teste 4 · ${remoto ? "progresso salvo na sua conta" : "progresso salvo neste aparelho"}</p></div>
     <button class="btn ghost" id="apagar">Apagar meus dados</button>
   </div>`;
 }
@@ -1168,12 +1175,15 @@ function renderSessao() {
   const rolagem = $(".tela") ? $(".tela").scrollTop : 0;
   $("#camada").innerHTML = `<div class="tela" role="dialog" aria-modal="true" aria-label="Sessão ${esc(s.titulo)}"><div class="tela-in">
     <div class="tela-top"><button class="fechar" id="sair" aria-label="Fechar sessão">${ico("x", 20)}</button><div class="passos">${barra}</div></div>
+    ${!S.dicaToque && i === 0 ? `<p class="dica-toque">${ico("seta", 18)}<span>Dica: toque na <b>direita</b> da tela para avançar e na <b>esquerda</b> para voltar, como nos stories.</span></p>` : ""}
     ${corpo}
     <div class="tela-acoes"><button class="btn" id="prox">${acao}</button>${i > 0 ? `<button class="btn ghost" id="ant">Voltar</button>` : ""}</div></div></div>`;
   $(".tela").scrollTop = novoPasso ? 0 : rolagem;
   $("#sair").onclick = () => { guardaDiario(); fechaSessao(); };
   $("#prox").onclick = () => { guardaDiario(); if (SE.i < passos.length - 1) { SE.i++; renderSessao(); } else concluir(); };
   const a = $("#ant"); if (a) a.onclick = () => { guardaDiario(); SE.i--; renderSessao(); };
+  $(".tela").onpointerdown = () => { SE.digitando = !!(document.activeElement && document.activeElement.id === "diario-in"); };
+  $(".tela").onclick = toqueSessao;
   const lf = $("#lerfull"); if (lf) lf.onclick = () => { if (!SE.abriuExtra) { SE.abriuExtra = true; S.extras++; salvar(); } };
   const le = $("#lerextra"); if (le) le.onclick = () => { S.extras++; salvar(); };
   const ta = $("#diario-in");
@@ -1195,10 +1205,40 @@ function renderSessao() {
   }
   const ti = $("#tiniciar");
   if (ti) ti.onclick = () => {
-    ti.hidden = true; let rest = Number(ti.dataset.s); const el = $("#timer");
-    const iv = setInterval(() => { if (!SE || !document.body.contains(el)) return clearInterval(iv); rest--; el.textContent = Math.floor(Math.max(0, rest) / 60) + ":" + String(Math.max(0, rest) % 60).padStart(2, "0"); if (rest <= 0) { clearInterval(iv); el.textContent = "Amém"; } }, 1000);
+    ti.hidden = true; let rest = Number(ti.dataset.s); const el = $("#timer"); SE.timer = true;
+    const iv = setInterval(() => { if (!SE || !document.body.contains(el)) { if (SE) SE.timer = false; return clearInterval(iv); } rest--; el.textContent = Math.floor(Math.max(0, rest) / 60) + ":" + String(Math.max(0, rest) % 60).padStart(2, "0"); if (rest <= 0) { clearInterval(iv); SE.timer = false; el.textContent = "Amém"; } }, 1000);
   };
 }
+/* Toque nas laterais, como nos stories: direita avança, esquerda volta. */
+const TOQUE_IGNORA = "button, a, textarea, input, select, label, .toggle, .tela-acoes, .tela-top";
+function piscaToque(lado) {
+  let fx = document.getElementById("toque-" + lado);
+  if (!fx) { fx = document.createElement("div"); fx.id = "toque-" + lado; fx.className = "toque-fx " + lado; fx.setAttribute("aria-hidden", "true"); document.body.appendChild(fx); }
+  fx.classList.remove("on"); void fx.offsetWidth; fx.classList.add("on");
+}
+function navegaSessao(dir) {
+  if (!SE) return false;
+  if (dir > 0 && SE.i < SE.passos.length - 1) { guardaDiario(); SE.i++; }
+  else if (dir < 0 && SE.i > 0) { guardaDiario(); SE.i--; }
+  else return false;
+  if (!S.dicaToque) { S.dicaToque = 1; salvar(); }
+  renderSessao(); return true;
+}
+function toqueSessao(e) {
+  if (!SE || SE.timer) return;
+  if (e.target.closest(TOQUE_IGNORA)) return;
+  if (SE.digitando) return; // com o teclado aberto, o primeiro toque só fecha o teclado
+  if (String(window.getSelection && window.getSelection()) !== "") return;
+  const box = $(".tela-in").getBoundingClientRect(), x = e.clientX;
+  const lado = x < box.left + box.width * .34 ? -1 : x > box.right - box.width * .34 ? 1 : 0;
+  if (!lado) return;
+  if (navegaSessao(lado)) piscaToque(lado < 0 ? "e" : "d");
+}
+document.addEventListener("keydown", e => {
+  if (!SE || !$(".tela") || (document.activeElement && /TEXTAREA|INPUT/.test(document.activeElement.tagName))) return;
+  if (e.key === "ArrowRight") navegaSessao(1);
+  if (e.key === "ArrowLeft") navegaSessao(-1);
+});
 function guardaDiario() {
   if (!SE || !SE.texto.trim()) return;
   const t = SE.texto.trim().slice(0, 4000);
