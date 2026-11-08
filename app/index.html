@@ -101,6 +101,7 @@ p { margin: 0; }
 .hero-ob .sete { font-weight: 700; font-size: 132px; line-height: .78; color: var(--red); letter-spacing: -.05em; }
 .hero-ob h1 { font-size: 34px; }
 .lista-check { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.lista-check.card { padding: 18px; }
 .lista-check li { display: flex; gap: 10px; align-items: flex-start; }
 .lista-check li::before { content: ""; flex: none; width: 8px; height: 8px; margin-top: 8px; border-radius: 2px; background: var(--red); }
 
@@ -716,7 +717,7 @@ function obAssinatura() {
     <p class="sub">Acesso a todas as jornadas, temas, bônus e prêmios. Cancele quando quiser.</p></div>
     <ul class="lista-check card"><li>Planos novos sempre que terminar uma jornada</li><li>Os 8 temas e todas as sessões</li><li>Lembretes, diário, selos, níveis e prêmios</li><li>Bônus e materiais com desconto</li></ul>
     <div class="planos">
-      <button class="preco" data-p="anual" aria-pressed="${planoPreco === "anual"}"><span class="tag">ECONOMIZE 44%</span><small>Anual</small><b>R$ 99,90</b><small>R$ 8,33 por mês</small></button>
+      <button class="preco" data-p="anual" aria-pressed="${planoPreco === "anual"}"><span class="tag">ECONOMIZE 44%</span><small>Anual</small><b>R$ 99,90</b><small>por ano (equivale a R$&nbsp;8,33/mês)</small></button>
       <button class="preco" data-p="mensal" aria-pressed="${planoPreco === "mensal"}"><small>Mensal</small><b>R$ 14,90</b><small>por mês</small></button>
     </div>
     <div class="ob-acoes"><button class="btn" id="assinar">Começar 7 dias grátis</button>
@@ -1017,7 +1018,7 @@ function vPerfil() {
       <p style="font-size:13px" class="muted">Semear é um app da Palavra &amp; Oração.</p>
       <p style="font-size:13px" class="muted">Textos bíblicos: Bíblia Sagrada, Nova Versão Internacional®, NVI® Copyright © 1993, 2000 by Biblica, Inc.™ Usado com permissão.</p>
       <p style="font-size:13px" class="muted">Este app ajuda na sua caminhada, mas não substitui sua igreja, aconselhamento pastoral ou acompanhamento profissional. Em crise, ligue 188 (CVV).</p>
-      <p style="font-size:13px" class="muted">Versão de teste 4 · ${remoto ? "progresso salvo na sua conta" : "progresso salvo neste aparelho"}</p></div>
+      <p style="font-size:13px" class="muted">Versão de teste 5 · ${remoto ? "progresso salvo na sua conta" : "progresso salvo neste aparelho"}</p></div>
     <button class="btn ghost" id="apagar">Apagar meus dados</button>
   </div>`;
 }
